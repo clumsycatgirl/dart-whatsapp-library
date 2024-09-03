@@ -9,6 +9,9 @@ environment:
 # Add regular dependencies here.
 dependencies:
   web_socket_channel: ^3.0.1
+  logging: ^1.2.0
+  crypto: ^3.0.5
+  tuple: ^2.0.2
   # path: ^1.8.0
 
 dev_dependencies:
