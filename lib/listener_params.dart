@@ -1,5 +1,3 @@
-import 'package:empty/listener_type.dart';
-
 abstract class ListenerParams {}
 
 class OnHeaderCreationParams extends ListenerParams {
@@ -28,6 +26,6 @@ class OnDisconnectParams extends ListenerParams {
 }
 
 class OnMessageParams extends ListenerParams {
-  final String message;
-  OnMessageParams({required this.message});
+  final dynamic data;
+  OnMessageParams({required this.data});
 }

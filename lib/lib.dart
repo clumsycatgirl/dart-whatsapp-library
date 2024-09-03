@@ -2,9 +2,12 @@ import 'package:empty/client_id.dart';
 import 'package:empty/constants.dart';
 import 'package:empty/listener_params.dart';
 import 'package:empty/listener_type.dart';
-import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:logging/logging.dart';
+
+import 'package:empty/web_socket_channel/web_socket_channel_stub.dart'
+    if (dart.library.io) 'package:empty/web_socket_channel/web_socket_channel_io.dart'
+    if (dart.library.html) 'package:empty/web_socket_channel/web_socket_channel_web.dart';
 
 typedef ListenerCallback<T extends ListenerParams> = void Function(Logger, T);
 
@@ -31,6 +34,11 @@ class WhatsappApi {
     }
 
     _clientId = ClientIdGenerator.generate();
+
+    registerListener(ListenerType.onConnect,
+        (Logger _, OnConnectParams params) {
+      _registerSocketChannelListeners();
+    });
   }
 
   Future<WhatsappApi> connect() async {
@@ -44,23 +52,14 @@ class WhatsappApi {
         BeforeConnectParams(uri: Constants.wsOrigin, headers: _headers));
 
     try {
-      _channel = IOWebSocketChannel.connect(
-        Constants.wsOrigin,
-        headers: _headers,
-      );
+      _channel =
+          createWebSocketChannel(Constants.wsOrigin.toString(), _headers);
     } on WebSocketChannelException catch (e) {
       _log.shout('WebSocketChannelException: ${e.message}');
       rethrow;
     } catch (e) {
       _log.shout('Unexpected exception: ${e.toString()}');
       rethrow;
-    }
-
-    if (_channel.closeCode == null) {
-      _callListeners(ListenerType.onConnect,
-          OnConnectParams(uri: Constants.wsOrigin, headers: _headers));
-
-      _registerSocketChannelListeners();
     }
 
     return this;
@@ -93,10 +92,15 @@ class WhatsappApi {
     _callListeners(ListenerType.onDisconnect, OnDisconnectParams());
   }
 
+  Future<WhatsappApi> send(String message) {
+    _channel.sink.add(message);
+    return Future.value(this);
+  }
+
   void _registerSocketChannelListeners() {
     _channel.stream.listen(
       (data) {
-        _callListeners(ListenerType.onMessage, OnMessageParams(message: data));
+        _callListeners(ListenerType.onMessage, OnMessageParams(data: data));
       },
       onError: (error) {
         _log.shout("WebSocketChannelError: ${error}");
