@@ -13,7 +13,7 @@ class WhatsappApi {
 
   late final WebSocketChannel _channel;
   late final ClientId _clientId;
-  final String _messageTag = 'gaygayhomosexualgay';
+  late final Map<String, String> _headers;
 
   final Map<ListenerType, List> _listeners = {};
 
@@ -33,43 +33,79 @@ class WhatsappApi {
     _clientId = ClientIdGenerator.generate();
   }
 
-  WhatsappApi connect() {
-    final Map<String, String> headers = {
+  Future<WhatsappApi> connect() async {
+    _headers = {
       'Origin': Constants.origin.toString(),
     };
-
     _callListeners<OnHeaderCreationParams>(ListenerType.onHeaderCreation,
-        OnHeaderCreationParams(headers: headers));
+        OnHeaderCreationParams(headers: _headers));
 
     _callListeners(ListenerType.beforeConnect,
-        BeforeConnectParams(uri: Constants.wsOrigin, headers: headers));
-    _channel = IOWebSocketChannel.connect(
-      Constants.wsOrigin,
-      headers: headers,
-    );
-    _callListeners(ListenerType.onConnect,
-        OnConnectParams(uri: Constants.wsOrigin, headers: headers));
+        BeforeConnectParams(uri: Constants.wsOrigin, headers: _headers));
 
-    _registerSocketChannelListeners();
+    try {
+      _channel = IOWebSocketChannel.connect(
+        Constants.wsOrigin,
+        headers: _headers,
+      );
+    } on WebSocketChannelException catch (e) {
+      _log.shout('WebSocketChannelException: ${e.message}');
+      rethrow;
+    } catch (e) {
+      _log.shout('Unexpected exception: ${e.toString()}');
+      rethrow;
+    }
+
+    if (_channel.closeCode == null) {
+      _callListeners(ListenerType.onConnect,
+          OnConnectParams(uri: Constants.wsOrigin, headers: _headers));
+
+      _registerSocketChannelListeners();
+    }
 
     return this;
   }
 
-  Future<WhatsappApi> awaitReady() async {
-    await _channel.ready;
+  Future<WhatsappApi> waitReady() async {
+    try {
+      await _channel.ready;
+      _callListeners(ListenerType.onConnect,
+          OnConnectParams(uri: Constants.wsOrigin, headers: _headers));
+    } on WebSocketChannelException catch (e) {
+      _log.shout(e.message);
+
+      try {
+        await disconnect();
+      } on WebSocketChannelException catch (e) {
+        _log.shout(e.message);
+      }
+    }
     return this;
   }
 
   Future<void> disconnect() async {
     _callListeners(ListenerType.beforeDisconnect, BeforeDisconnectParams());
-    await _channel.sink.close();
+    try {
+      await _channel.sink.close();
+    } on WebSocketChannelException catch (e) {
+      _log.shout(e.message);
+    }
     _callListeners(ListenerType.onDisconnect, OnDisconnectParams());
   }
 
   void _registerSocketChannelListeners() {
-    _channel.stream.listen((data) {
-      _log.info('Received $data');
-    });
+    _channel.stream.listen(
+      (data) {
+        _callListeners(ListenerType.onMessage, OnMessageParams(message: data));
+      },
+      onError: (error) {
+        _log.shout("WebSocketChannelError: ${error}");
+        throw error;
+      },
+      onDone: () {
+        _log.info("Terminating");
+      },
+    );
   }
 
   WhatsappApi registerListener<T extends ListenerParams>(
@@ -88,4 +124,6 @@ class WhatsappApi {
       (listener as ListenerCallback<T>)(_log, params);
     }
   }
+
+  WebSocketChannel get channel => _channel;
 }
