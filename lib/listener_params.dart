@@ -2,7 +2,8 @@ abstract class ListenerParams {}
 
 class OnHeaderCreationParams extends ListenerParams {
   final Map<String, String> headers;
-  OnHeaderCreationParams({required this.headers});
+  final Uri uri;
+  OnHeaderCreationParams({required this.uri, required this.headers});
 }
 
 class BeforeConnectParams extends ListenerParams {

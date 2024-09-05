@@ -20,9 +20,13 @@ class WhatsappApi {
 
   final Map<ListenerType, List> _listeners = {};
 
-  WhatsappApi() {
+  late final Uri _wsOrigin;
+
+  WhatsappApi({Uri? wsOrigin}) {
     hierarchicalLoggingEnabled = true;
     _log.level = Level.ALL;
+
+    _wsOrigin = wsOrigin ?? Constants.wsOrigin;
 
     _log.onRecord.listen((record) {
       print(
@@ -46,14 +50,13 @@ class WhatsappApi {
       'Origin': Constants.origin.toString(),
     };
     _callListeners<OnHeaderCreationParams>(ListenerType.onHeaderCreation,
-        OnHeaderCreationParams(headers: _headers));
+        OnHeaderCreationParams(uri: _wsOrigin, headers: _headers));
 
     _callListeners(ListenerType.beforeConnect,
-        BeforeConnectParams(uri: Constants.wsOrigin, headers: _headers));
+        BeforeConnectParams(uri: _wsOrigin, headers: _headers));
 
     try {
-      _channel =
-          createWebSocketChannel(Constants.wsOrigin.toString(), _headers);
+      _channel = createWebSocketChannel(_wsOrigin.toString(), _headers);
     } on WebSocketChannelException catch (e) {
       _log.shout('WebSocketChannelException: ${e.message}');
       rethrow;
@@ -69,7 +72,7 @@ class WhatsappApi {
     try {
       await _channel.ready;
       _callListeners(ListenerType.onConnect,
-          OnConnectParams(uri: Constants.wsOrigin, headers: _headers));
+          OnConnectParams(uri: _wsOrigin, headers: _headers));
     } on WebSocketChannelException catch (e) {
       _log.shout(e.message);
 
@@ -103,11 +106,11 @@ class WhatsappApi {
         _callListeners(ListenerType.onMessage, OnMessageParams(data: data));
       },
       onError: (error) {
-        _log.shout("WebSocketChannelError: ${error}");
+        _log.shout("WebSocketChannelError: $error");
         throw error;
       },
       onDone: () {
-        _log.info("Terminating");
+        _log.info("Closing channel.stream");
       },
     );
   }
@@ -130,4 +133,5 @@ class WhatsappApi {
   }
 
   WebSocketChannel get channel => _channel;
+  Uri get wsOrigin => _wsOrigin;
 }
