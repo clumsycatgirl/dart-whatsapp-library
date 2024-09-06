@@ -17,7 +17,7 @@ def on_open(ws):
     ws.send("Hello WebSocket")
 
 if __name__ == '__main__':
-    url = 'wss://web.whatsapp.com/ws'
+    url = 'wss://web.whatsapp.com/ws/chat'
     headers = {
         'Origin': 'https://web.whatsapp.com',
     }

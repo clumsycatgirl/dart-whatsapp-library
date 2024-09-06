@@ -27,6 +27,9 @@ class OnDisconnectParams extends ListenerParams {
 }
 
 class OnMessageParams extends ListenerParams {
-  final dynamic data;
-  OnMessageParams({required this.data});
+  late final String data;
+  final dynamic rawData;
+  OnMessageParams({required this.rawData}) {
+    data = String.fromCharCodes(rawData);
+  }
 }

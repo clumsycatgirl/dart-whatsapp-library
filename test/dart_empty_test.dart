@@ -26,7 +26,7 @@ void main() {
 
     await api.connect();
     await api.waitReady();
-    await api.send('meow');
+    api.send('meow');
 
     while (result == null) {}
 

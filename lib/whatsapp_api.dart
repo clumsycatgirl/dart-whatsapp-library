@@ -1,4 +1,9 @@
+// ignore_for_file: unused_field
+
+import 'dart:convert';
+
 import 'package:empty/client_id.dart';
+import 'package:empty/connection_state.dart';
 import 'package:empty/constants.dart';
 import 'package:empty/listener_params.dart';
 import 'package:empty/listener_type.dart';
@@ -22,7 +27,10 @@ class WhatsappApi {
 
   late final Uri _wsOrigin;
 
+  late ConnectionState _state;
+
   WhatsappApi({Uri? wsOrigin}) {
+    _state = ConnectionState.initializing;
     hierarchicalLoggingEnabled = true;
     _log.level = Level.ALL;
 
@@ -39,9 +47,25 @@ class WhatsappApi {
 
     _clientId = ClientIdGenerator.generate();
 
+    registerListener(ListenerType.beforeConnect,
+        (Logger _, BeforeConnectParams __) {
+      _state = ConnectionState.connecting;
+    });
+
     registerListener(ListenerType.onConnect,
         (Logger _, OnConnectParams params) {
       _registerSocketChannelListeners();
+      _state = ConnectionState.connected;
+    });
+
+    registerListener(ListenerType.beforeDisconnect,
+        (Logger _, BeforeDisconnectParams __) {
+      _state = ConnectionState.disconnecting;
+    });
+
+    registerListener(ListenerType.onDisconnect,
+        (Logger _, OnDisconnectParams __) {
+      _state = ConnectionState.disconnected;
     });
   }
 
@@ -86,6 +110,8 @@ class WhatsappApi {
   }
 
   Future<void> disconnect() async {
+    if (_state != ConnectionState.connected) return;
+
     _callListeners(ListenerType.beforeDisconnect, BeforeDisconnectParams());
     try {
       await _channel.sink.close();
@@ -95,22 +121,29 @@ class WhatsappApi {
     _callListeners(ListenerType.onDisconnect, OnDisconnectParams());
   }
 
-  Future<WhatsappApi> send(String message) {
-    _channel.sink.add(message);
-    return Future.value(this);
+  WhatsappApi send(String message) {
+    _channel.sink.add(utf8.encode(message));
+    return this;
   }
 
   void _registerSocketChannelListeners() {
     _channel.stream.listen(
       (data) {
-        _callListeners(ListenerType.onMessage, OnMessageParams(data: data));
+        _callListeners(ListenerType.onMessage, OnMessageParams(rawData: data));
       },
       onError: (error) {
         _log.shout("WebSocketChannelError: $error");
         throw error;
       },
       onDone: () {
-        _log.info("Closing channel.stream");
+        String reason = _channel.closeReason ?? 'unknown reason';
+        if (_channel.closeCode == 1002) {
+          reason =
+              '\'Protocol Error\' Connection closed by endpoint due to protocol error';
+        }
+        _log.info(
+            "Closing channel.stream:\n\tCode ${_channel.closeCode}: $reason");
+        disconnect();
       },
     );
   }
@@ -134,4 +167,5 @@ class WhatsappApi {
 
   WebSocketChannel get channel => _channel;
   Uri get wsOrigin => _wsOrigin;
+  ClientId get clientId => _clientId;
 }

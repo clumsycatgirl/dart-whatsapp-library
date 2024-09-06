@@ -4,21 +4,7 @@ import 'package:empty/listener_params.dart';
 import 'package:empty/listener_type.dart';
 import 'package:logging/logging.dart';
 
-import 'package:http/http.dart' as http;
-
 Future main() async {
-  final http.Client client = http.Client();
-  final http.Request request =
-      http.Request('GET', Uri.parse('https://www.google.com'));
-  request.headers['Origin'] = Constants.origin.toString();
-
-  final http.StreamedResponse response = await client.send(request);
-  response.stream.listen((data) {
-    print(data);
-  });
-
-  return;
-
   final WhatsappApi api = WhatsappApi();
 
   api.registerListener(ListenerType.onHeaderCreation,
@@ -33,15 +19,16 @@ Future main() async {
     log.info('Connected to ${params.uri}');
   }).registerListener(ListenerType.onMessage,
       (Logger log, OnMessageParams params) {
-    log.info(params.data.toString());
+    log.info(params.data);
   });
 
   await api.connect();
   await api.waitReady();
 
-  await api.send('meow');
+  api.send(
+      '${Constants.messageTag},["admin","init",[0,3,2390],["Meow-Long"],["Meow-Short"],"${api.clientId}",true]');
 
-  await Future.delayed(Duration(seconds: 1));
-
-  await api.disconnect();
+  Future.delayed(Duration(seconds: 10), () {
+    api.disconnect();
+  });
 }
