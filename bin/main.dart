@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:empty/constants.dart';
 import 'package:empty/whatsapp_api.dart';
 import 'package:empty/listener_params.dart';
@@ -25,8 +27,8 @@ Future main() async {
   await api.connect();
   await api.waitReady();
 
-  api.send(
-      '${Constants.messageTag},["admin","init",[0,3,2390],["Meow-Long"],["Meow-Short"],"${api.clientId}",true]');
+  api.send(JsonEncoder().convert(
+      '${Constants.messageTag},["admin","init",[0,3,2390],["Meow-Long"],["Meow-Short"],"${api.clientId}",true]'));
 
   Future.delayed(Duration(seconds: 10), () {
     api.disconnect();
