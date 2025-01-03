@@ -11,7 +11,7 @@ void main() {
 
   test('echo', () async {
     final WhatsappApi api =
-        WhatsappApi(wsOrigin: Uri.parse('wss://echo.websocket.events'));
+        WhatsappApi(wsOrigin: Uri.parse('https://echo.websocket.events'));
 
     bool? result;
     api.registerListener(ListenerType.onMessage,
@@ -26,9 +26,12 @@ void main() {
 
     await api.connect();
     await api.waitReady();
+
     api.send('meow');
 
-    while (result == null) {}
+    while (result == null) {
+      print('waiting');
+    }
 
     return result;
   });

@@ -1,25 +1,21 @@
 // ignore_for_file: unused_field
 
-import 'dart:convert';
 
 import 'package:empty/client_id.dart';
 import 'package:empty/connection_state.dart';
 import 'package:empty/constants.dart';
 import 'package:empty/listener_params.dart';
 import 'package:empty/listener_type.dart';
+import 'package:empty/ws_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:logging/logging.dart';
-
-import 'package:empty/web_socket_channel/web_socket_channel_stub.dart'
-    if (dart.library.io) 'package:empty/web_socket_channel/web_socket_channel_io.dart'
-    if (dart.library.html) 'package:empty/web_socket_channel/web_socket_channel_web.dart';
 
 typedef ListenerCallback<T extends ListenerParams> = void Function(Logger, T);
 
 class WhatsappApi {
   final Logger _log = Logger('WhatsappApi');
 
-  late final WebSocketChannel _channel;
+  late final WsChannel _channel;
   late final ClientId _clientId;
   late final Map<String, String> _headers;
 
@@ -67,12 +63,13 @@ class WhatsappApi {
         (Logger _, OnDisconnectParams __) {
       _state = ConnectionState.disconnected;
     });
-  }
 
-  Future<WhatsappApi> connect() async {
     _headers = {
       'Origin': Constants.origin.toString(),
     };
+  }
+
+  Future<WhatsappApi> connect() async {
     _callListeners<OnHeaderCreationParams>(ListenerType.onHeaderCreation,
         OnHeaderCreationParams(uri: _wsOrigin, headers: _headers));
 
@@ -80,7 +77,7 @@ class WhatsappApi {
         BeforeConnectParams(uri: _wsOrigin, headers: _headers));
 
     try {
-      _channel = createWebSocketChannel(_wsOrigin.toString(), _headers);
+      _channel = await WsChannel.create(_wsOrigin, headers: _headers);
     } on WebSocketChannelException catch (e) {
       _log.shout('WebSocketChannelException: ${e.message}');
       rethrow;
@@ -122,7 +119,8 @@ class WhatsappApi {
   }
 
   WhatsappApi send(String message) {
-    _channel.sink.add(utf8.encode(message));
+    // _channel.sink.add(Uint8List.fromList(utf8.encode(message)));
+    _channel.sink.add(message);
     return this;
   }
 
@@ -165,7 +163,8 @@ class WhatsappApi {
     }
   }
 
-  WebSocketChannel get channel => _channel;
+  WsChannel get channel => _channel;
   Uri get wsOrigin => _wsOrigin;
   ClientId get clientId => _clientId;
+  Map<String, String> get headers => _headers;
 }

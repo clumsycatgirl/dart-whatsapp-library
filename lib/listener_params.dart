@@ -30,6 +30,6 @@ class OnMessageParams extends ListenerParams {
   late final String data;
   final dynamic rawData;
   OnMessageParams({required this.rawData}) {
-    data = String.fromCharCodes(rawData);
+    data = rawData is String ? rawData : String.fromCharCodes(rawData);
   }
 }

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "Lu3D85fO6JJT6gFB7wh+wZEd/GcMkEpC+Fmla4DsW/p4JhrpG6+A4NBLwGGFYN3h2WbSSE9QPg7JUBmLq3mL6A==",
+  "success": true,
+  "projectFilePath": "/home/ivy/Documents/projects/dart-empty/server/server.csproj",
+  "expectedPackageFiles": [
+    "/home/ivy/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.7/microsoft.aspnetcore.app.ref.8.0.7.nupkg.sha512"
+  ],
+  "logs": []
+}
