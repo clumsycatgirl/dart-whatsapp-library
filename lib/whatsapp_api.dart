@@ -158,8 +158,8 @@ class WhatsappApi {
     print('-' * 64);
     _log.info("[${type.toString().split('.')[1]}]");
 
-    for (final listener in listeners) {
-      (listener as ListenerCallback<T>)(_log, params);
+    for (final ListenerCallback<T> listener in listeners) {
+      listener(_log, params);
     }
   }
 

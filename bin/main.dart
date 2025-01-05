@@ -43,7 +43,7 @@ Future _main() async {
     log.info('Connected to ${params.uri}');
   }).registerListener(ListenerType.onMessage,
       (Logger log, OnMessageParams params) {
-    log.info(params.data);
+    log.info("${params.data.codeUnits} '${params.data}'");
   });
 
   await api.connect();
@@ -51,6 +51,8 @@ Future _main() async {
 
   api.send(
       '${Constants.messageTag},["admin","init",${Constants.version},[${Constants.longClientName}],[${Constants.shortClientName}, ${Constants.clientVersion}],"${api.clientId}",true]');
+  api.send(
+      '${"meow"},["admin","init",[0,3,2390],["Meow-Long"],["Meow-Short"],"${api.clientId}",true]');
 
   await Future.delayed(Duration(seconds: 10));
   await api.disconnect();
