@@ -1,6 +1,5 @@
 // ignore_for_file: unused_field
 
-
 import 'package:empty/client_id.dart';
 import 'package:empty/connection_state.dart';
 import 'package:empty/constants.dart';
