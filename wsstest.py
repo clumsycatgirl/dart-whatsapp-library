@@ -18,7 +18,6 @@ def on_close(ws, close_status_code, close_msg):
 
 def on_open(ws):
     print("Connection opened")
-    ws.send("meow?")
 
 
 if __name__ == '__main__':
@@ -31,7 +30,6 @@ if __name__ == '__main__':
 
     websocket.enableTrace(True)
     ws = websocket.WebSocket(
-        # header=headers_list,
         # on_open=on_open,
         # on_message=on_message,
         # on_error=on_error,
@@ -42,7 +40,7 @@ if __name__ == '__main__':
 
     ws.connect(url)
 
-    ws.send(b'meow,["admin", "init", [0, 3, 2390],["Meow-Long", "Meow-Short"], "{FoQbXQyFgNFDSqufN5EpxA==}", true]')
-    print(ws.recv())
+    ws.send(b'meow,["admin","init",[0,3,2390],["Meow-Long","Meow-Short"],"FoQbXQyFgNFDSqufN5EpxA==",true]')
+    print('received: ' + ws.recv())
 
     ws.close()

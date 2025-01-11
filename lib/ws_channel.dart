@@ -77,10 +77,17 @@ final class WsChannel {
 
   Future<void> get ready => _readyCompleter.future;
 
+  static Future<WsChannel> createNew(String uri,
+      {Map<String, String>? headers}) async {
+    final WebSocket webSocket = await WebSocket.connect(uri, headers: headers);
+
+    return WsChannel(webSocket);
+  }
+
   static Future<WsChannel> create(Uri uri,
       {Map<String, String>? headers}) async {
     final String host = uri.host;
-    final int port = uri.port == 0 ? 443 : uri.port;
+    final int port = 5222 ?? (uri.port == 0 ? 443 : uri.port);
 
     final HttpClient client = HttpClient();
     client.badCertificateCallback = (cert, host, port) => true;
@@ -89,11 +96,14 @@ final class WsChannel {
     request.headers
       ..set(HttpHeaders.hostHeader, '$host:$port', preserveHeaderCase: true)
       ..set(HttpHeaders.upgradeHeader, 'websocket', preserveHeaderCase: true)
-      ..set(HttpHeaders.connectionHeader, 'Upgrade', preserveHeaderCase: true)
+      ..set(HttpHeaders.connectionHeader, 'keep-alive, Upgrade',
+          preserveHeaderCase: true)
       ..set('Sec-WebSocket-Key', 'dGhlIHNhbXBsZSBub25jZQ==',
           preserveHeaderCase: true)
       ..set('Sec-WebSocket-Version', '13', preserveHeaderCase: true)
-      ..set(HttpHeaders.userAgentHeader, 'CustomClient/1.0',
+      // ..set(HttpHeaders.userAgentHeader, 'CustomClient/1.0', preserveHeaderCase: true);
+      ..set(HttpHeaders.userAgentHeader,
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0',
           preserveHeaderCase: true);
 
     headers?.forEach((key, value) {

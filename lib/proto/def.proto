@@ -163,7 +163,7 @@ message ExtendedTextMessage {
     OSWALD_HEAVY = 5;
   }
   optional EXTENDED_TEXT_MESSAGE_FONTTYPE font = 9;
-  enum EXTENDED_TEXT_MESSAGE_PREVIEWTYPE {
+  enum EXTENDED_TEXT_MESSAGE_PREVIEWTYPE {`
     NONE = 0;
     VIDEO = 1;
   }

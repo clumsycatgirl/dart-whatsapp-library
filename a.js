@@ -1,249 +1,169 @@
-__d(
-  "WAWebOpenSocket",
-  [
-    "Promise",
-    "WAAbortError",
-    "WALogger",
-    "WANullthrows",
-    "WAPromiseRetryLoop",
-    "WAWebCookieDomain",
-    "WAWebLocalStorage",
-    "WAWebMiscErrors",
-    "WAWebWatchedSocket",
-    "gkx",
-  ],
-  function (a, b, c, d, e, f, g) {
-    var h;
-    function i() {
-      var a = babelHelpers.taggedTemplateLiteralLoose([
-        "[socket] openWebSocketsConcurrently socket with ",
-        " failed: ",
-        "",
-      ]);
-      i = function () {
+self.window = self;
+function doImportScripts(a) {
+  if (self.trustedTypes && self.trustedTypes.createPolicy) {
+    var b = self.trustedTypes.createPolicy("workerPolicy", {
+      createScriptURL: function (a) {
         return a;
-      };
-      return a;
-    }
-    function j() {
-      var a = babelHelpers.taggedTemplateLiteralLoose([
-        "[socket] openWebSocketsConcurrently closing socket with ",
-        " as loser",
-      ]);
-      j = function () {
-        return a;
-      };
-      return a;
-    }
-    function k() {
-      var a = babelHelpers.taggedTemplateLiteralLoose([
-        "[socket] openWebSocketsConcurrently opened socket with ",
-        " ws.",
-      ]);
-      k = function () {
-        return a;
-      };
-      return a;
-    }
-    function l() {
-      var a = babelHelpers.taggedTemplateLiteralLoose([
-        "[socket] openWebSocketsConcurrently opening ws with ",
-        ".",
-      ]);
-      l = function () {
-        return a;
-      };
-      return a;
-    }
-    function m() {
-      var a = babelHelpers.taggedTemplateLiteralLoose([
-        "[socket] ",
-        ". Reason: ",
-        ", clean: ",
-        "",
-      ]);
-      m = function () {
-        return a;
-      };
-      return a;
-    }
-    function n() {
-      var a = babelHelpers.taggedTemplateLiteralLoose(["[socket] ", ""]);
-      n = function () {
-        return a;
-      };
-      return a;
-    }
-    function o() {
-      var a = babelHelpers.taggedTemplateLiteralLoose(["[socket] ", ""]);
-      o = function () {
-        return a;
-      };
-      return a;
-    }
-    function p() {
-      var a = babelHelpers.taggedTemplateLiteralLoose(["[socket] ", ""]);
-      p = function () {
-        return a;
-      };
-      return a;
-    }
-    function q() {
-      var a = babelHelpers.taggedTemplateLiteralLoose(["[socket] ", ""]);
-      q = function () {
-        return a;
-      };
-      return a;
-    }
-    function r() {
-      var a = babelHelpers.taggedTemplateLiteralLoose([
-        "[socket] Immediate socket closure: closed: ",
-        " ",
-        "",
-      ]);
-      r = function () {
-        return a;
-      };
-      return a;
-    }
-    var s = [
-      "wss://web.whatsapp.com/ws/chat",
-      "wss://web.whatsapp.com:5222/ws/chat",
-    ];
-    function t() {
-      if (!c("gkx")("26258")) {
-        var a;
-        a =
-          (a = c("WANullthrows")(c("WAWebLocalStorage")).getItem(
-            "wdev-pinning-cookie-value"
-          )) != null
-            ? a
-            : "";
-        document.cookie = [
-          "sticky_routing=" + a.replace(/\"/g, ""),
-          "path=/",
-          "domain=" + d("WAWebCookieDomain").COOKIE_DOMAIN,
-          "secure",
-        ].join(";");
-      }
-    }
-    function u(a) {
-      if (a.code === 1e3) return;
-      d("WALogger").WARN(r(), a.code, a.reason).tags("socket");
-    }
-    function v(a, b) {
-      var c =
-        a != null
-          ? "[socket] " + a + " closed. code: " + b.code
-          : "[socket] closed connection during initialization. Code: " + b.code;
-      switch (b.code) {
-        case 1e3:
-        case 1001:
-          d("WALogger").LOG(q(), c).tags("socket");
-          break;
-        case 1006:
-          a != null && d("WALogger").WARN(p(), c).tags("socket");
-          d("WALogger").ERROR(o(), c).tags("socket");
-          break;
-        case 1002:
-        case 1003:
-        case 1007:
-        case 1008:
-        case 1009:
-        case 1010:
-        case 1011:
-        case 1015:
-          d("WALogger").ERROR(n(), c).tags("socket");
-          break;
-        default:
-          d("WALogger").ERROR(m(), c, b.reason, b.wasClean).tags("socket");
-          break;
-      }
-    }
-    function w(a) {
-      var c = new AbortController();
-      return new (h || (h = b("Promise")))(function (b, e) {
-        var f = !1,
-          g = [];
-        a.forEach(function (h) {
-          d("WALogger").DEV(l(), h).tags("socket"),
-            void x(h, c.signal, u, v)
-              .then(function (a) {
-                !f
-                  ? ((f = !0),
-                    d("WALogger").LOG(k(), h).tags("socket").devConsole(a),
-                    b(a))
-                  : (d("WALogger").DEV(j(), h).tags("socket"),
-                    c.abort(),
-                    a.close(1e3, "loser socket"));
-              })
-            ["catch"](function (b) {
-              if (b.name === "AbortError") return;
-              d("WALogger").WARN(i(), h, b).tags("socket");
-              g.push(b);
-              g.length === a.length && e(b);
-            });
-        });
-      });
-    }
-    function x(e, f, a, c) {
-      var g = new WebSocket(e);
-      g.binaryType = "arraybuffer";
-      return new (h || (h = b("Promise")))(function (b, e) {
-        (g.onopen = b),
-          (g.onclose = function (b) {
-            if (f == null ? void 0 : f.aborted) {
-              e(new (d("WAAbortError").AbortError)());
-              return;
-            }
-            a == null ? void 0 : a(b);
-            c == null ? void 0 : c(null, b);
-            e(new (d("WAWebMiscErrors").SocketError)(b));
-          });
-      }).then(function () {
-        return g;
-      });
-    }
-    function y() {
-      return {
-        jitter: 0.1,
-        max: 1e4,
-        algo: { type: "fibonacci", first: 1e3, second: 1e3 },
-        relativeDelay: !0,
-      };
-    }
-    function z() {
-      return self.navigator != null ? self.navigator.onLine : !0;
-    }
-    function a(a) {
-      var b = s.map(function (b) {
-        return a != null ? b + "?ED=" + a : b;
-      }),
-        c = !0;
-      t();
-      var e = function () {
-        z() && c === !1 && ((c = !0), f.reset());
       },
-        f = new (d("WAPromiseRetryLoop").PromiseRetryLoop)({
-          name: "socketOpener",
-          timer: y(),
-          code: function (a) {
-            return w(b)
-              .then(function (b) {
-                a(new (d("WAWebWatchedSocket").WatchedSocket)(b));
-              })
-            ["catch"](function () {
-              c = z();
-            });
-          },
-        });
-      self.addEventListener("online", e);
-      f.start();
-      return f.promise()["finally"](function () {
-        self.removeEventListener("online", e);
-      });
+    });
+    importScripts(b.createScriptURL(a));
+  } else importScripts(a);
+}
+function generateWorkerID() {
+  var a = Math.floor(Math.random() * Math.pow(36, 6));
+  a = a.toString(36);
+  return "0".repeat(6 - a.length) + a;
+}
+if (
+  "SharedWorkerGlobalScope" in self &&
+  self instanceof self.SharedWorkerGlobalScope
+) {
+  var portsBuffer = [],
+    messageBuffer = [],
+    unsubscribeCleanupFunctions = [],
+    hasRun = !1,
+    initAttemptCount = 0;
+  self.setTimeout(function () {
+    if (!hasRun) {
+      try {
+        var a;
+        (a = portsBuffer[0]) == null
+          ? void 0
+          : a.postMessage({
+            type: "self-terminate",
+            response: { from: "init-v1" },
+          });
+      } catch (a) { }
+      self.close();
     }
-    g.openWebSocket = a;
-  },
-  98
-);
+  }, 3e5);
+  self.shared_worker_bootstrap_buffer = function () {
+    hasRun;
+    hasRun = !0;
+    while (unsubscribeCleanupFunctions.length)
+      try {
+        var a = unsubscribeCleanupFunctions.pop();
+        a();
+      } catch (a) { }
+    a = portsBuffer;
+    var b = messageBuffer;
+    messageBuffer = [];
+    portsBuffer = [];
+    return { ports: a, messages: b };
+  };
+  var connectListener = function (a) {
+    self.worker_id == null && (self.worker_id = generateWorkerID());
+    var b = {},
+      c = a.ports[0];
+    c.postMessage({
+      type: "connection-ack",
+      response: { from: "initScript", workerID: self.worker_id },
+    });
+    var d = function (d) {
+      b.c ||
+        ((b.c = !0),
+          c.postMessage({ type: "worker-init-mark", response: { point: "c" } }));
+      var e = d.data;
+      if (
+        typeof e === "object" &&
+        (e == null ? void 0 : e.type) === "execute-worker"
+      ) {
+        b.d ||
+          ((b.d = !0),
+            c.postMessage({
+              type: "worker-init-mark",
+              response: { point: "d" },
+            }));
+        e = e.args instanceof Array ? e.args : null;
+        if (e == null || typeof e[0] !== "object") return;
+        var f = e[0];
+        e = e[1];
+        e === !0 && (self.__DEV__ = 1);
+        messageBuffer.push({ e: d, port: c });
+        b.e ||
+          ((b.e = !0),
+            c.postMessage({
+              type: "worker-init-mark",
+              response: { point: "e" },
+            }));
+        try {
+          doImportScripts(f.url),
+            c.postMessage({
+              type: "execute-worker-imports",
+              response: { attempts: ++initAttemptCount },
+            });
+        } catch (a) {
+          c.postMessage({
+            type: "execute-worker-imports",
+            response: { err: a.message, attempts: ++initAttemptCount },
+          });
+        }
+      } else messageBuffer.push({ e: d, port: c });
+    };
+    b.a ||
+      ((b.a = !0),
+        c.postMessage({ type: "worker-init-mark", response: { point: "a" } }));
+    c.addEventListener("message", d);
+    unsubscribeCleanupFunctions.push(function () {
+      return c.removeEventListener("message", d);
+    });
+    c.start();
+    portsBuffer.push(c);
+    b.b ||
+      ((b.b = !0),
+        c.postMessage({ type: "worker-init-mark", response: { point: "b" } }));
+  };
+  self.addEventListener("connect", connectListener);
+  unsubscribeCleanupFunctions.push(function () {
+    return self.removeEventListener("connect", connectListener);
+  });
+} else {
+  var initMessageHandler = function (a) {
+    a = a.data;
+    if (
+      typeof a === "object" &&
+      (a == null ? void 0 : a.type) === "sr-init" &&
+      typeof a.bundleUrl === "string" &&
+      typeof a.resource === "object"
+    ) {
+      a.isDev === !0 && (self.__DEV__ = !0);
+      if (a.logImportScriptsErrors === !0)
+        try {
+          doImportScripts(a.bundleUrl),
+            self.postMessage({ type: "importScripts_success" });
+        } catch (c) {
+          var b =
+            self.performance &&
+            self.performance.getEntriesByName &&
+            self.performance.getEntriesByName(a.bundleUrl);
+          b = b && b[0];
+          self.postMessage({
+            type: "importScripts_error",
+            source: "init_script",
+            error_msg: c && c.message,
+            error_code: c && (c == null ? void 0 : c.code),
+            error_name: c && (c == null ? void 0 : c.name),
+            stack: c && c.stack,
+            perfEntry: b
+              ? {
+                responseStatus: b.responseStatus,
+                encodedBodySize: b.encodedBodySize,
+                transferSize: b.transferSize,
+                duration: b.duration,
+              }
+              : null,
+          });
+          throw c;
+        }
+      else doImportScripts(a.bundleUrl);
+      if (a.doNotStartBundle !== !0) {
+        StartBundle.apply(
+          void 0,
+          [a.resource].concat((b = a.initArgs) != null ? b : [])
+        );
+      }
+      self.removeEventListener("message", initMessageHandler);
+    }
+  };
+  self.addEventListener("message", initMessageHandler);
+}

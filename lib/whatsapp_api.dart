@@ -1,10 +1,13 @@
 // ignore_for_file: unused_field
 
+import 'dart:convert';
+
 import 'package:empty/client_id.dart';
 import 'package:empty/connection_state.dart';
 import 'package:empty/constants.dart';
 import 'package:empty/listener_params.dart';
 import 'package:empty/listener_type.dart';
+import 'package:empty/web_socket_message.dart';
 import 'package:empty/ws_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:logging/logging.dart';
@@ -24,7 +27,7 @@ class WhatsappApi {
 
   late ConnectionState _state;
 
-  WhatsappApi({Uri? wsOrigin}) {
+  WhatsappApi({Uri? wsOrigin, Map<String, String>? headers}) {
     _state = ConnectionState.initializing;
     hierarchicalLoggingEnabled = true;
     _log.level = Level.ALL;
@@ -63,9 +66,8 @@ class WhatsappApi {
       _state = ConnectionState.disconnected;
     });
 
-    _headers = {
-      'Origin': Constants.origin.toString(),
-    };
+    _headers = headers ?? {};
+    _headers.putIfAbsent("Origin", () => Constants.wsOrigin.toString());
   }
 
   Future<WhatsappApi> connect() async {
@@ -117,9 +119,10 @@ class WhatsappApi {
     _callListeners(ListenerType.onDisconnect, OnDisconnectParams());
   }
 
-  WhatsappApi send(String message) {
+  WhatsappApi send(WebSocketMessage message) {
     // _channel.sink.add(Uint8List.fromList(utf8.encode(message)));
-    _channel.sink.add(message);
+    _log.log(Level.INFO, "sending '$message'");
+    _channel.sink.add(message.encode());
     return this;
   }
 

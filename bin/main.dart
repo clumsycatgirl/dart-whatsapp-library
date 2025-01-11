@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:empty/constants.dart';
+import 'package:empty/web_socket_message.dart';
 import 'package:empty/whatsapp_api.dart';
 import 'package:empty/listener_params.dart';
 import 'package:empty/listener_type.dart';
@@ -6,25 +10,28 @@ import 'package:logging/logging.dart';
 
 Future main() async {
   final uri =
-      // Uri.parse('http://localhost:8080/')
-      Uri.parse('https://echo.websocket.events')
+      //
+      // Uri.parse('https://echo.websocket.events')
+      // Uri.parse('http://localhost:7979')
+      Uri.parse('https://web.whatsapp.com/ws/chat')
       //
       ;
   final WhatsappApi api = WhatsappApi(wsOrigin: uri);
 
   api.registerListener(ListenerType.onMessage,
       (Logger logger, OnMessageParams params) {
-    logger.info("received: ${params.data}");
+    logger.info("received: '${params.rawData}' -> '${params.data}'");
   });
 
   await api.connect();
   await api.waitReady();
 
-  api.send("hiiii");
-  api.send("hiiii2");
+  // api.send(WebSocketMessage.fromData("hiiii"));
+  // api.send(WebSocketMessage.fromData("hiiii2"));
+  api.send(WebSocketMessage.fromData(
+      '["admin","init",${Constants.version},["${Constants.longClientName}", "${Constants.shortClientName}"],"${api.clientId}",true]'));
 
   await Future.delayed(Duration(seconds: 5));
-
   await api.disconnect();
 }
 
@@ -49,10 +56,10 @@ Future _main() async {
   await api.connect();
   await api.waitReady();
 
-  api.send(
-      '${Constants.messageTag},["admin","init",${Constants.version},[${Constants.longClientName}],[${Constants.shortClientName}, ${Constants.clientVersion}],"${api.clientId}",true]');
-  api.send(
-      '${"meow"},["admin","init",[0,3,2390],["Meow-Long"],["Meow-Short"],"${api.clientId}",true]');
+  // api.send(
+  //     '${Constants.messageTag},["admin","init",${Constants.version},[${Constants.longClientName}],[${Constants.shortClientName}, ${Constants.clientVersion}],"${api.clientId}",true]');
+  // api.send(
+  //     '${"meow"},["admin","init",[0,3,2390],["Meow-Long"],["Meow-Short"],"${api.clientId}",true]');
 
   await Future.delayed(Duration(seconds: 10));
   await api.disconnect();
